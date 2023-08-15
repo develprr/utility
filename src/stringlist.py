@@ -10,7 +10,7 @@ class StringList(BaseModel):
   list: List[StrictStr]
   
   @staticmethod
-  def new(strings: list[str]):
+  def new(strings: List[StrictStr]):
     return StringList(**{
       'list': strings
     })
