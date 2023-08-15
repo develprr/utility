@@ -6,8 +6,7 @@
 # and a from a simple list of float values.
 
 import pandas
-from typing import List
-from pydantic import BaseModel, StrictStr, ConfigDict, ValidationError, validate_call
+from pydantic import BaseModel, ConfigDict, validate_call
 from d2floatarray import D2FloatArray
 from stringlist import StringList
 
