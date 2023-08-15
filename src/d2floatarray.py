@@ -2,8 +2,7 @@
 
 # D2FloatArray is a type safe wrapper & initializer for a two dimensional ndarray containing float values
 
-from typing import List
-from pydantic import BaseModel, StrictStr, ConfigDict, ValidationError, validate_call
+from pydantic import BaseModel, ConfigDict, validate_call
 
 import numpy as np
 from numpy import ndarray
