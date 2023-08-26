@@ -8,6 +8,7 @@ import numpy as np
 from numpy import ndarray
   
 class D2FloatArray(BaseModel):
+  
   model_config = ConfigDict(arbitrary_types_allowed=True)
     
   ndarray: ndarray
@@ -18,6 +19,9 @@ class D2FloatArray(BaseModel):
     return D2FloatArray(**{
       'ndarray': np.array(array)
     })
+    
+  def tolist(self):
+    return self.ndarray.tolist()
 
 # Perhaps surprisingly, this must pass because an int list is also a float list although a float list is not an int list.
 def test_new__pass_when_three_int_lists_are_given():
