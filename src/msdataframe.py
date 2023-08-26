@@ -6,6 +6,7 @@
 # and a from a simple list of float values.
 
 import pandas
+import json
 from pydantic import BaseModel, ConfigDict, validate_call
 from d2floatarray import D2FloatArray
 from stringlist import StringList
@@ -32,6 +33,9 @@ class MSDataFrame(BaseModel):
     
   def __str__(self):
     return str(self.dataframe)
+    
+  def to_json(self):
+    return json.dumps(json.loads(self.dataframe.to_json(orient="columns")))
 
 def test_new_from_list__pass_with_list():
   ms_dataframe = MSDataFrame.new_from_list([1,2,3])
@@ -51,4 +55,12 @@ def test_new_from_d2_float_array__fail_with_non_string_list_columns():
   except:
     print("pass: an exception was raised as expected on instantiation of wrong kinds of objects")
     return
-  raise Exception("fail: an exception was not raised on wrong constructor parameters")
+  raise Exception("fail: an exception was not raised on wrong constructor parameters")    
+
+def test_to_json():
+  float_array = D2FloatArray.new([[161,47],[170.5, 72.4],[185.5, 91]])
+  columns = StringList.new(['Weight', 'Height'])
+  ms_dataframe = MSDataFrame.new_from_d2_float_array(float_array, columns)
+  json = ms_dataframe.to_json()
+  expected_json = '{"0": {"Weight": 161.0, "Height": 47.0}, "1": {"Weight": 170.5, "Height": 72.4}, "2": {"Weight": 185.5, "Height": 91.0}}'
+  assert(ms_dataframe.to_json() == expected_json)
