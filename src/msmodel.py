@@ -21,4 +21,14 @@ class MSModel(BaseModel):
   # insert object into DB
   def insert(self):
     collection_name = self.__class__.__name__
-    MSMongoClient.singleton.insert_one(collection_name, self.to_json())
+    return MSMongoClient.singleton.insert_one(collection_name, self.to_json())
+
+  @classmethod
+  def find_all(cls):
+    collection_name = cls.__name__
+    return MSMongoClient.singleton.find(collection_name, {})
+
+  @classmethod
+  def delete_all(cls):
+    collection_name = cls.__name__
+    return MSMongoClient.singleton.delete_many(collection_name, {})
