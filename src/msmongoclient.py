@@ -6,6 +6,15 @@ import pymongo
 
 class MSMongoClient(object):
 
+  instance = None
+  
+  @classmethod
+  @property
+  def singleton(cls):
+    if cls.instance is None:
+        cls.instance = cls("msdb")
+    return cls.instance
+        
   def __init__(self, dbname):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     self.dbname = dbname
@@ -18,7 +27,7 @@ class MSMongoClient(object):
     return self.client[collection_name].find_one()
       
 def test_insert_one():
-  database = MSDatabase("msdb") 
-  database.insert_one("users", { "name": "Moctezuma" })
-  entry = database.find_one("users")
+  client = MSMongoClient.singleton 
+  client.insert_one("users", { "name": "Moctezuma" })
+  entry = client.find_one("users")
   assert(entry["name"] == "Moctezuma")
