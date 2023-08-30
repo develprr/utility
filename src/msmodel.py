@@ -1,12 +1,8 @@
 # (C) Heikki Kupiainen 2023    
 
-# MSModel is Metamatic System's 
-# ground-breaking base model to allow enabling
-# two aspects to your business objects.
-#
-# Quickly convert your business data objects into Pydantic models
-# and make them persistable into Mongo database
-# by extending your models from MSModel base class!
+# MSModel is a study about combining Pydantic and MongoDB.
+# By extending MSModel, a data object can be enabled to use
+# Pydantic and persisted into Mongo database.
 
 import orjson
 from pydantic import BaseModel
