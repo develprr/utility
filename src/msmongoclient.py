@@ -25,6 +25,12 @@ class MSMongoClient(object):
   
   def find_one(self, collection_name):
     return self.client[collection_name].find_one()
+  
+  def find(self, collection_name, query):
+    return list(self.client[collection_name].find(query))
+  
+  def delete_many(self, collection_name, query):
+    return self.client[collection_name].delete_many(query)
       
 def test_insert_one():
   client = MSMongoClient.singleton 
