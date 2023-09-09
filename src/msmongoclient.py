@@ -23,8 +23,8 @@ class MSMongoClient(object):
   def insert_one(self,collection_name, item):
     self.client[collection_name].insert_one(item)
   
-  def find_one(self, collection_name):
-    return self.client[collection_name].find_one()
+  def find_one(self, collection_name, query):
+    return self.client[collection_name].find_one(query)
   
   def find(self, collection_name, query):
     return list(self.client[collection_name].find(query))
