@@ -5,6 +5,9 @@
 # Pydantic and persisted into Mongo database.
 
 import orjson
+import importlib
+import sys,imp
+
 from pydantic import BaseModel
 from msmongoclient import MSMongoClient
   
@@ -22,12 +25,32 @@ class MSModel(BaseModel):
   def insert(self):
     collection_name = self.__class__.__name__
     return MSMongoClient.singleton.insert_one(collection_name, self.to_json())
-
+  
+  @classmethod
+  def new_from_document(cls, document):  
+    document["id"] = document["_id"]
+    classname = cls.__name__
+    modulename = classname.lower()
+    module = importlib.import_module(modulename)
+    class_ref = getattr(module, classname)
+    return class_ref(**document)
+    
   @classmethod
   def find_all(cls):
     collection_name = cls.__name__
     return MSMongoClient.singleton.find(collection_name, {})
 
+  @staticmethod
+  def import_from(module, name):
+    module = __import__(module, fromlist=[name])
+    return module
+
+  @classmethod
+  def find_one(cls, query):
+    collection_name = cls.__name__
+    document =  MSMongoClient.singleton.find_one(collection_name, query)  
+    return cls.new_from_document(document)
+  
   @classmethod
   def delete_all(cls):
     collection_name = cls.__name__
