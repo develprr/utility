@@ -40,11 +40,6 @@ class MSModel(BaseModel):
     collection_name = cls.__name__
     return MSMongoClient.singleton.find(collection_name, {})
 
-  @staticmethod
-  def import_from(module, name):
-    module = __import__(module, fromlist=[name])
-    return module
-
   @classmethod
   def find_one(cls, query):
     collection_name = cls.__name__
