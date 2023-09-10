@@ -6,16 +6,18 @@
 
 import orjson
 import importlib
-import sys,imp
-
 from pydantic import BaseModel
 from msmongoclient import MSMongoClient
   
 class MSModel(BaseModel):
 
   # Converts data object to JSON with "_id" field which is compatible with MongoDB
-  def to_json(self):
+  def to_mongo_json(self):
     json = orjson.loads(self.model_dump_json())
+    return self.substitute_id_with_underscore_id(json)
+  
+  # when storing object to mongodb, expclit ID field must be translated into "_id"
+  def substitute_id_with_underscore_id(self, json):
     id = json["id"]
     del json["id"]
     json["_id"] = id
@@ -24,7 +26,7 @@ class MSModel(BaseModel):
   # insert object into DB
   def insert(self):
     collection_name = self.__class__.__name__
-    return MSMongoClient.singleton.insert_one(collection_name, self.to_json())
+    return MSMongoClient.singleton.insert_one(collection_name, self.to_mongo_json())
   
   @classmethod
   def new_from_document(cls, document):  
