@@ -1,6 +1,6 @@
 # (C) Heikki Kupiainen 2023    
 
-from pydantic import StrictStr, validate_call, create_model
+from pydantic import StrictStr, validate_call
 from msmodel import MSModel
   
 class Player(MSModel):
@@ -24,9 +24,9 @@ def test_new():
   assert(player.id == "21")
   assert(player.name == "Ronaldinho Gaucho")
 
-def test_json():
+def test_to_mongo_json():
   player = Player.new("21", "Ronaldinho Gaucho")
-  json = player.to_json()
+  json = player.to_mongo_json()
   assert(json == { "_id": "21", "name": "Ronaldinho Gaucho" })
 
 def test_find_all():
