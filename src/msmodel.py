@@ -30,7 +30,6 @@ class MSModel(BaseModel):
   
   @classmethod
   def new_from_document(cls, document):  
-    document["id"] = document["_id"]
     classname = cls.__name__
     modulename = classname.lower()
     module = importlib.import_module(modulename)
