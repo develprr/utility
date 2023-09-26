@@ -30,11 +30,25 @@ class MSModel(BaseModel):
   
   @classmethod
   def new_from_document(cls, document):  
-    classname = cls.__name__
+    
+    # determine the target class into wich the Mongo document must be converted:
+    classname = cls.__name__ 
+
+    # determine the module in which the target class resides: 
     modulename = classname.lower()
+    
+    # import the actual module by the module name that we reasoned:
     module = importlib.import_module(modulename)
+  
+    # get a reference to the class object of the target class inside the module:
     class_ref = getattr(module, classname)
+
+    # since our Pydantic objects are expected to have "id" field
+    # whereas MongoDB document has an "_id" field
+    # make a clone of the document that has "id" field:  
     document_with_id = {**document, "id": document["_id"]}
+
+    # finally, create an instance of target class passing the document as constructor parameter:
     return class_ref(**document_with_id)
     
   @classmethod
