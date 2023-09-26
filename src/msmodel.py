@@ -39,9 +39,14 @@ class MSModel(BaseModel):
     
   @classmethod
   def find_all(cls):
-    collection_name = cls.__name__
-    return MSMongoClient.singleton.find(collection_name, {})
+    return cls.find({})
 
+  @classmethod
+  def find(cls, query):
+    collection_name = cls.__name__
+    documents = MSMongoClient.singleton.find(collection_name, query)
+    return list(map(cls.new_from_document, documents))
+    
   @classmethod
   def find_one(cls, query):
     collection_name = cls.__name__
