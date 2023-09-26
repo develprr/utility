@@ -34,7 +34,8 @@ class MSModel(BaseModel):
     modulename = classname.lower()
     module = importlib.import_module(modulename)
     class_ref = getattr(module, classname)
-    return class_ref(**document)
+    document_with_id = {**document, "id": document["_id"]}
+    return class_ref(**document_with_id)
     
   @classmethod
   def find_all(cls):
