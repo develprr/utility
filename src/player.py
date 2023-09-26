@@ -1,4 +1,8 @@
-# (C) Heikki Kupiainen 2023    
+# (C) Heikki Kupiainen @ Metamatic Systems 2023    
+
+# Player is a Pydantic Mongo aware example class
+# to demonstrate how to store and map your Pydantic models
+# seamlessly to Mongo database.
 
 from pydantic import StrictStr, validate_call
 from msmodel import MSModel
@@ -35,8 +39,16 @@ def test_find_all():
   Player.new("10", "Diego Maradona").insert()
   found_players = Player.find_all()
   assert(len(found_players) == 2)
+
+def test_find_all__returns_a_list_of_player_objects():
+  Player.delete_all()
+  Player.new("21", "Ronaldinho Gaucho").insert()
+  Player.new("10", "Diego Maradona").insert()
+  found_players = Player.find_all()
+  for player in found_players:
+    assert(type(player) == Player)
   
-def test_delete_all():
+def test_delete_all(): 
   Player.delete_all()
   Player.new("21", "Ronaldinho Gaucho").insert()
   Player.new("10", "Diego Maradona").insert()
