@@ -6,15 +6,17 @@
 
 import orjson
 import importlib
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictStr
 from msmongoclient import MSMongoClient
   
 class MSModel(BaseModel):
 
+  id: StrictStr
+  
   # Converts data object to JSON with "_id" field which is compatible with MongoDB
   def to_mongo_dict(self):
-    json = self.to_dict()
-    return self.substitute_id_with_underscore_id(json)
+    dict = self.to_dict()
+    return self.substitute_id_with_underscore_id(dict)
   
   def to_dict(self):
     return orjson.loads(self.model_dump_json())
@@ -23,8 +25,7 @@ class MSModel(BaseModel):
   def substitute_id_with_underscore_id(self, json):
     id = json["id"]
     del json["id"]
-    json["_id"] = id
-    return json
+    return {**json, '_id': id}
     
   # insert object into DB
   def insert(self):
@@ -71,9 +72,16 @@ class MSModel(BaseModel):
     return cls.new_from_document(document)
   
   @classmethod
-  def aggregate(cls, query):
+  def aggregate(cls, pipeline):
     collection_name = cls.__name__
-    return MSMongoClient.singleton.aggregate(collection_name, query)  
+    documents = MSMongoClient.singleton.aggregate(collection_name, pipeline)
+    return list(map(cls.new_from_document, documents))
+  
+  @classmethod
+  def aggregate_one(cls, pipeline):
+    collection_name = cls.__name__
+    documents = MSMongoClient.singleton.aggregate(collection_name, pipeline)
+    return cls.new_from_document(list(documents)[0])
   
   @classmethod
   def delete_all(cls):
