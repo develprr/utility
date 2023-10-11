@@ -26,8 +26,8 @@ class MSMongoClient(object):
   def find_one(self, collection_name, query):
     return self.client[collection_name].find_one(query)
   
-  def aggregate(self, collection_name, query):
-    return self.client[collection_name].find_one(query)
+  def aggregate(self, collection_name, pipeline):
+    return self.client[collection_name].aggregate(pipeline)
   
   def find(self, collection_name, query):
     return list(self.client[collection_name].find(query))
