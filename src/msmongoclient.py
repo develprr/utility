@@ -1,4 +1,4 @@
-# (C) Heikki Kupiainen 2023    
+# Studied & written by Heikki Kupiainen 2023    
 
 # Wrapper for a MongoDB client
 
@@ -24,6 +24,9 @@ class MSMongoClient(object):
     self.client[collection_name].insert_one(item)
   
   def find_one(self, collection_name, query):
+    return self.client[collection_name].find_one(query)
+  
+  def aggregate(self, collection_name, query):
     return self.client[collection_name].find_one(query)
   
   def find(self, collection_name, query):
