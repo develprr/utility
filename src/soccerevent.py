@@ -5,8 +5,7 @@ from msmodel import MSModel
 import uuid
 
 class SoccerEvent(MSModel):
-
-  id: StrictStr
+ 
   name: StrictStr
   
   @staticmethod
