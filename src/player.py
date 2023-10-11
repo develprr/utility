@@ -1,4 +1,4 @@
-# (C) Heikki Kupiainen @ Metamatic Systems 2023    
+# Studied & written by Heikki Kupiainen 
 
 # Player is a Pydantic Mongo aware example class
 # to demonstrate how to store and map your Pydantic models
@@ -28,9 +28,9 @@ def test_new():
   assert(player.id == "21")
   assert(player.name == "Ronaldinho Gaucho")
 
-def test_to_mongo_json():
+def test_to_mongo_dict():
   player = Player.new("21", "Ronaldinho Gaucho")
-  json = player.to_mongo_json()
+  json = player.to_mongo_dict()
   assert(json == { "_id": "21", "name": "Ronaldinho Gaucho" })
 
 def test_find_all():
