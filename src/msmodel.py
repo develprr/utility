@@ -71,6 +71,11 @@ class MSModel(BaseModel):
     return cls.new_from_document(document)
   
   @classmethod
+  def aggregate(cls, query):
+    collection_name = cls.__name__
+    return MSMongoClient.singleton.aggregate(collection_name, query)  
+  
+  @classmethod
   def delete_all(cls):
     collection_name = cls.__name__
     return MSMongoClient.singleton.delete_many(collection_name, {})
