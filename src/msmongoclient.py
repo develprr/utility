@@ -3,6 +3,13 @@
 # Wrapper for a MongoDB client
 
 import pymongo
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+mongodb_address = os.getenv('MONGODB_ADDRESS')
 
 class MSMongoClient(object):
 
@@ -16,7 +23,7 @@ class MSMongoClient(object):
     return cls.instance
         
   def __init__(self, dbname):
-    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    myclient = pymongo.MongoClient(mongodb_address)
     self.dbname = dbname
     self.client = myclient[dbname]
   
