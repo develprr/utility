@@ -82,7 +82,6 @@ class EventAssignment(MSModel):
       },
     ]);
         
-        
 #####################
 # Integration tests #
 #####################
@@ -92,7 +91,6 @@ def test_new():
   event = SoccerEvent.new("match")
   assignment = EventAssignment.new(player, event)
   assert(player.id == assignment.player.id)
-
 
 # A complete Pydantic model structure can be
 # directly instatiated from a nested dictionary object.
@@ -159,12 +157,15 @@ def test_to_dict():
   }
   assert(dictionary == expected_dictionary)
 
-
-def test_get_property_names():
+def test_get_attribute_names():
   ea = get_sample_event_assignment()
-  properties = ea.get_property_names()
-  print(properties)
-  assert(properties == ['id', 'event', 'player'])
+  attr_names = ea.get_attribute_names()
+  assert(attr_names == ['id', 'event', 'player'])
+
+def test_get_attribute_collection_name():
+  ea = get_sample_event_assignment()
+  collection_name = ea.get_attribute_collection_name('player')
+  assert(collection_name == "Player")
 
 def clear_database():
   EventAssignment.delete_all()
