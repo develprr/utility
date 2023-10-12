@@ -33,7 +33,7 @@ class EventAssignment(MSModel):
       'player_id': self.player.id,
       'event_id': self.event.id 
     }
-
+    
   # fetch_one uses a custom MongoDB query to fetch
   # the event assignment object with its properties
   # in a format that can directly be deserialized
@@ -46,24 +46,10 @@ class EventAssignment(MSModel):
       },
       {
         "$lookup": {
-          'from': 'Player',
-          'localField': 'player_id',
-          'foreignField': '_id',
-          'as': 'player'
-        }
-      },
-      {
-        "$lookup": {
           'from': 'SoccerEvent',
           'localField': 'event_id',
           'foreignField': '_id',
           'as': 'event'
-        }
-      },
-      {
-        '$unwind': { 
-            'path': '$player', 
-            'preserveNullAndEmptyArrays': True 
         }
       },
       {
@@ -73,15 +59,34 @@ class EventAssignment(MSModel):
         }
       },
       {
-        '$project': {
-          'player.id': '$player._id',
-          'player.name': 1,
-          'event.id': '$event._id',
-          'event.name': 1
+        "$lookup": {
+          'from': 'Player',
+          'localField': 'player_id',
+          'foreignField': '_id',
+          'as': 'player'
         }
-      }
+      },
+      {
+        '$unwind': { 
+            'path': '$player', 
+            'preserveNullAndEmptyArrays': True 
+        }
+      },
+      {
+        '$project': {
+          'event.id': '$event._id',
+          'event.name': 1,
+          'player.id': '$player._id',
+          'player.name': 1
+        }
+      },
     ]);
         
+        
+#####################
+# Integration tests #
+#####################
+
 def test_new():
   player = Player.new("21", "R. Gaúcho")
   event = SoccerEvent.new("match")
@@ -112,9 +117,7 @@ def test_constuctor__works_with_nested_dictionary_object():
   assert(assignment.event.name == 'match')
 
 def test_fetch_one():
-  EventAssignment.delete_all()
-  SoccerEvent.delete_all()
-  Player.delete_all()
+  clear_database()
   
   player = Player.new("21", "R. Gaúcho")
   event = SoccerEvent.new("match")
@@ -130,12 +133,17 @@ def test_fetch_one():
   assert(found_assignment.player.name == "R. Gaúcho")
   
 def test_insert_one():
+  clear_database()
+  
   player = Player.new("21", "R. Gaúcho")
   event = SoccerEvent.new("match")
-  EventAssignment.delete_all()
+  
+  player.insert()
+  event.insert()
+
   assignment = EventAssignment.new(player, event)
   assignment.insert()
-  found_assignment = EventAssignment.find_one({})
+  found_assignment = EventAssignment.fetch_one({})
   assert(found_assignment.id == assignment.id)
   assert(assignment.event.name == event.name)
 
@@ -150,3 +158,20 @@ def test_to_dict():
     'player_id': player.id
   }
   assert(dictionary == expected_dictionary)
+
+
+def test_get_property_names():
+  ea = get_sample_event_assignment()
+  properties = ea.get_property_names()
+  print(properties)
+  assert(properties == ['id', 'event', 'player'])
+
+def clear_database():
+  EventAssignment.delete_all()
+  SoccerEvent.delete_all()
+  Player.delete_all()
+
+def get_sample_event_assignment():
+  player = Player.new("21", "R. Gaúcho")
+  event = SoccerEvent.new("match")
+  return EventAssignment.new(player, event)
