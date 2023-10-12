@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 mongodb_address = os.getenv('MONGODB_ADDRESS')
+mongodb_name = os.getenv('MONGODB_NAME')
 
 class MSMongoClient(object):
 
@@ -19,7 +20,7 @@ class MSMongoClient(object):
   @property
   def singleton(cls):
     if cls.instance is None:
-        cls.instance = cls("msdb")
+        cls.instance = cls(mongodb_name)
     return cls.instance
         
   def __init__(self, dbname):
