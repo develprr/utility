@@ -21,6 +21,12 @@ class MSModel(BaseModel):
   def to_dict(self):
     return orjson.loads(self.model_dump_json())
   
+  def get_attribute_names(self):
+    return list(vars(self).keys())
+  
+  def get_attribute_collection_name(self, attribute_name):
+    return type(vars(self)[attribute_name]).__name__
+    
   # when storing object to mongodb, expclit ID field must be translated into "_id"
   def substitute_id_with_underscore_id(self, json):
     id = json["id"]
@@ -30,7 +36,8 @@ class MSModel(BaseModel):
   # insert object into DB
   def insert(self):
     collection_name = self.__class__.__name__
-    return MSMongoClient.singleton.insert_one(collection_name, self.to_mongo_dict())
+    mongo_dict = self.to_mongo_dict()
+    return MSMongoClient.singleton.insert_one(collection_name,  mongo_dict)
   
   @classmethod
   def new_from_document(cls, document):  
@@ -51,7 +58,7 @@ class MSModel(BaseModel):
     # whereas MongoDB document has an "_id" field
     # make a clone of the document that has "id" field:  
     document_with_id = {**document, "id": document["_id"]}
-
+    
     # finally, create an instance of target class passing the document as constructor parameter:
     return class_ref(**document_with_id)
     
