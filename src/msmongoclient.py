@@ -46,5 +46,5 @@ class MSMongoClient(object):
 def test_insert_one():
   client = MSMongoClient.singleton 
   client.insert_one("users", { "name": "Moctezuma" })
-  entry = client.find_one("users")
+  entry = client.find_one("users", {})
   assert(entry["name"] == "Moctezuma")
