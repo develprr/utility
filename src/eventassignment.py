@@ -34,27 +34,6 @@ class EventAssignment(MSModel):
       'event_id': self.event.id 
     }
   
-  # build a one-to-one lookup object by attribute name
-  def build_one_to_one_lookup(self, field_name):
-    collection_name = self.get_attribute_collection_name(field_name)
-    local_field = f'{field_name}_id'
-    return [
-      {
-        '$lookup': {
-          'from': collection_name,
-          'localField': local_field,
-          'foreignField': '_id',
-          'as': field_name
-        }
-      },
-      {
-        '$unwind': { 
-            'path': f'${field_name}', 
-            'preserveNullAndEmptyArrays': True 
-        }
-      }
-    ]
-  
   # fetch_one uses a custom MongoDB query to fetch
   # the event assignment object with its properties
   # in a format that can directly be deserialized
@@ -65,34 +44,8 @@ class EventAssignment(MSModel):
       {
         "$match": query
       },
-      {
-        "$lookup": {
-          'from': 'SoccerEvent',
-          'localField': 'event_id',
-          'foreignField': '_id',
-          'as': 'event'
-        }
-      },
-      {
-        '$unwind': { 
-            'path': '$event', 
-            'preserveNullAndEmptyArrays': True 
-        }
-      },
-      {
-        "$lookup": {
-          'from': 'Player',
-          'localField': 'player_id',
-          'foreignField': '_id',
-          'as': 'player'
-        }
-      },
-      {
-        '$unwind': { 
-            'path': '$player', 
-            'preserveNullAndEmptyArrays': True 
-        }
-      },
+      *cls.build_one_to_one_lookup('event'),
+      *cls.build_one_to_one_lookup('player'),
       {
         '$project': {
           'event.id': '$event._id',
@@ -183,14 +136,10 @@ def test_get_field_names():
   print(field_names)
   assert(field_names == ['id', 'event', 'player'])
 
-def test_get_field_type():
-  field_type = EventAssignment.get_field_type('event')
+def test_get_field_collection_name():
+  field_type = EventAssignment.get_field_collection_name('event')
   print(field_type)
   assert(field_type == 'SoccerEvent')
-
-def test_get_field_collection_name():
-  collection_name = ea.get_field_collection('player')
-  assert(collection_name == "Player")
 
 def clear_database():
   EventAssignment.delete_all()
@@ -201,3 +150,23 @@ def get_sample_event_assignment():
   player = Player.new("21", "R. Gaúcho")
   event = SoccerEvent.new("match")
   return EventAssignment.new(player, event)
+
+def test_build_one_to_one_lookup():
+  lookup = EventAssignment.build_one_to_one_lookup('player')
+  print(lookup)
+  assert(lookup == [
+    {
+      '$lookup': {
+        'from': 'Player', 
+        'localField': 'player_id', 
+        'foreignField': '_id', 
+        'as': 'player'
+      }
+    }, 
+    {
+      '$unwind': {
+        'path': '$player', 
+        'preserveNullAndEmptyArrays': True
+      }
+    }
+  ])
