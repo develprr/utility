@@ -65,6 +65,28 @@ class MSModel(BaseModel):
     # finally, create an instance of target class passing the document as constructor parameter:
     return class_ref(**document_with_id)
     
+  # Builds a one-to-one lookup object by field name.
+  @classmethod
+  def build_one_to_one_lookup(cls, field_name):
+    collection_name = cls.get_field_collection_name(field_name)
+    local_field = f'{field_name}_id'
+    return [
+      {
+        '$lookup': {
+          'from': collection_name,
+          'localField': local_field,
+          'foreignField': '_id',
+          'as': field_name
+        }
+      },
+      {
+        '$unwind': {
+            'path': f'${field_name}',
+            'preserveNullAndEmptyArrays': True
+        }
+      }
+    ]
+    
   @classmethod
   def find_all(cls):
     return cls.find({})
