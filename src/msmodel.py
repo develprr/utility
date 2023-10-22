@@ -25,9 +25,11 @@ class MSModel(BaseModel):
   def get_field_names(cls):
     return list(cls.model_fields.keys())
   
-  def get_attribute_collection_name(self, attribute_name):
-    return type(vars(self)[attribute_name]).__name__
-    
+  # Returns the name of the collection in the MongodB that is associated with given field name  
+  @classmethod
+  def get_field_collection_name(cls, field_name):
+    return cls.model_fields[field_name].annotation.__name__
+  
   # when storing object to mongodb, expclit ID field must be translated into "_id"
   def substitute_id_with_underscore_id(self, json):
     id = json["id"]
