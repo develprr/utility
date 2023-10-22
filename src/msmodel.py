@@ -21,8 +21,9 @@ class MSModel(BaseModel):
   def to_dict(self):
     return orjson.loads(self.model_dump_json())
   
-  def get_attribute_names(self):
-    return list(vars(self).keys())
+  @classmethod
+  def get_field_names(cls):
+    return list(cls.model_fields.keys())
   
   def get_attribute_collection_name(self, attribute_name):
     return type(vars(self)[attribute_name]).__name__
@@ -75,7 +76,7 @@ class MSModel(BaseModel):
   @classmethod
   def find_one(cls, query):
     collection_name = cls.__name__
-    document =  MSMongoClient.singleton.find_one(collection_name, query)  
+    document = MSMongoClient.singleton.find_one(collection_name, query)  
     return cls.new_from_document(document)
   
   @classmethod
