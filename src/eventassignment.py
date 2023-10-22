@@ -33,7 +33,28 @@ class EventAssignment(MSModel):
       'player_id': self.player.id,
       'event_id': self.event.id 
     }
-    
+  
+  # build a one-to-one lookup object by attribute name
+  def build_one_to_one_lookup(self, field_name):
+    collection_name = self.get_attribute_collection_name(field_name)
+    local_field = f'{field_name}_id'
+    return [
+      {
+        '$lookup': {
+          'from': collection_name,
+          'localField': local_field,
+          'foreignField': '_id',
+          'as': field_name
+        }
+      },
+      {
+        '$unwind': { 
+            'path': f'${field_name}', 
+            'preserveNullAndEmptyArrays': True 
+        }
+      }
+    ]
+  
   # fetch_one uses a custom MongoDB query to fetch
   # the event assignment object with its properties
   # in a format that can directly be deserialized
@@ -157,10 +178,10 @@ def test_to_dict():
   }
   assert(dictionary == expected_dictionary)
 
-def test_get_attribute_names():
-  ea = get_sample_event_assignment()
-  attr_names = ea.get_attribute_names()
-  assert(attr_names == ['id', 'event', 'player'])
+def test_get_field_names():
+  field_names = EventAssignment.get_field_names()
+  print(field_names)
+  assert(field_names == ['id', 'event', 'player'])
 
 def test_get_attribute_collection_name():
   ea = get_sample_event_assignment()
