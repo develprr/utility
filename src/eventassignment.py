@@ -183,9 +183,13 @@ def test_get_field_names():
   print(field_names)
   assert(field_names == ['id', 'event', 'player'])
 
-def test_get_attribute_collection_name():
-  ea = get_sample_event_assignment()
-  collection_name = ea.get_attribute_collection_name('player')
+def test_get_field_type():
+  field_type = EventAssignment.get_field_type('event')
+  print(field_type)
+  assert(field_type == 'SoccerEvent')
+
+def test_get_field_collection_name():
+  collection_name = ea.get_field_collection('player')
   assert(collection_name == "Player")
 
 def clear_database():
