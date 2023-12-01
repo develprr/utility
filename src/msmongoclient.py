@@ -42,9 +42,19 @@ class MSMongoClient(object):
   
   def delete_many(self, collection_name, query):
     return self.client[collection_name].delete_many(query)
+  
+  def exists_collection(self, collection_name):
+    return collection_name in self.collection_names()
+  
+  @cache
+  def collection_names(self):
+    return self.client.list_collection_names()
       
 def test_insert_one():
   client = MSMongoClient.singleton 
   client.insert_one("users", { "name": "Moctezuma" })
   entry = client.find_one("users", {})
   assert(entry["name"] == "Moctezuma")
+
+def test_exists_collection():
+  assert(MSMongoClient.singleton.exists_collection("SoccerEvent") == True)
