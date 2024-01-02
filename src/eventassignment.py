@@ -44,8 +44,7 @@ class EventAssignment(MSModel):
       {
         "$match": query
       },
-      *cls.build_one_to_one_lookup('event'),
-      *cls.build_one_to_one_lookup('player'),
+      *cls.build_one_to_one_lookups(),
       {
         '$project': {
           'event.id': '$event._id',
@@ -53,8 +52,9 @@ class EventAssignment(MSModel):
           'player.id': '$player._id',
           'player.name': 1
         }
-      },
+      },  
     ]);
+    
         
 #####################
 # Integration tests #
@@ -133,13 +133,20 @@ def test_to_dict():
 
 def test_get_field_names():
   field_names = EventAssignment.get_field_names()
-  print(field_names)
   assert(field_names == ['id', 'event', 'player'])
 
-def test_get_field_collection_name():
-  field_type = EventAssignment.get_field_collection_name('event')
+def test_get_collection_references():
+  collection_references = EventAssignment.get_collection_references()
+  print(collection_references)
+  assert(collection_references == ["event", "player"])
+  
+def test_get_field_type():
+  field_type = EventAssignment.get_field_type('event')
   print(field_type)
   assert(field_type == 'SoccerEvent')
+  field_type = EventAssignment.get_field_type('id')
+  print(field_type)
+  assert(field_type == 'str')
 
 def clear_database():
   EventAssignment.delete_all()
@@ -151,9 +158,42 @@ def get_sample_event_assignment():
   event = SoccerEvent.new("match")
   return EventAssignment.new(player, event)
 
+def test_build_one_to_one_lookups():
+  lookups = EventAssignment.build_one_to_one_lookups()
+  assert(lookups == [
+    {
+      '$lookup': {
+        'from': 'SoccerEvent', 
+        'localField': 'event_id', 
+        'foreignField': '_id', 
+        'as': 'event'
+      }
+    },
+    {
+      '$unwind': {
+        'path': 
+        '$event', 
+        'preserveNullAndEmptyArrays': True
+      }
+    },
+    {
+      '$lookup': {
+        'from': 'Player', 
+        'localField': 'player_id', 
+        'foreignField': '_id', 
+        'as': 'player'
+      }
+    },
+    {
+      '$unwind': {
+        'path': '$player', 
+        'preserveNullAndEmptyArrays': True
+      }
+    }
+  ])
+
 def test_build_one_to_one_lookup():
   lookup = EventAssignment.build_one_to_one_lookup('player')
-  print(lookup)
   assert(lookup == [
     {
       '$lookup': {
