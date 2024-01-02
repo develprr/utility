@@ -8,7 +8,8 @@ import orjson
 import importlib
 from pydantic import BaseModel, StrictStr
 from msmongoclient import MSMongoClient
-  
+import numpy as np
+
 class MSModel(BaseModel):
 
   id: StrictStr
@@ -24,10 +25,25 @@ class MSModel(BaseModel):
   @classmethod
   def get_field_names(cls):
     return list(cls.model_fields.keys())
+    
+  @classmethod
+  def get_collection_references(cls):
+    field_names = cls.get_field_names()
+    return list(filter(cls.is_field_collection_reference, field_names))
   
+  @classmethod
+  def is_field_collection_reference(cls, field_name):
+    field_type = cls.get_field_type(field_name)
+    collection_names = MSMongoClient.singleton.collection_names()
+    return True if field_type in collection_names else False
+  
+  @classmethod 
+  def get_field_type(cls, field_name):
+    return cls.model_fields[field_name].annotation;
+    
   # Returns the name of the collection in the MongodB that is associated with given field name  
   @classmethod
-  def get_field_collection_name(cls, field_name):
+  def get_field_type(cls, field_name):
     return cls.model_fields[field_name].annotation.__name__
   
   # when storing object to mongodb, expclit ID field must be translated into "_id"
@@ -68,7 +84,7 @@ class MSModel(BaseModel):
   # Builds a one-to-one lookup object by field name.
   @classmethod
   def build_one_to_one_lookup(cls, field_name):
-    collection_name = cls.get_field_collection_name(field_name)
+    collection_name = cls.get_field_type(field_name)
     local_field = f'{field_name}_id'
     return [
       {
@@ -86,6 +102,11 @@ class MSModel(BaseModel):
         }
       }
     ]
+  
+  @classmethod
+  def build_one_to_one_lookups(cls):
+    references = cls.get_collection_references()
+    return np.array(list(map(cls.build_one_to_one_lookup, references))).flatten().tolist()
     
   @classmethod
   def find_all(cls):
