@@ -32,29 +32,7 @@ class EventAssignment(MSModel):
       'id': self.id,
       'player_id': self.player.id,
       'event_id': self.event.id 
-    }
-  
-  # fetch_one uses a custom MongoDB query to fetch
-  # the event assignment object with its properties
-  # in a format that can directly be deserialized
-  # into a Pydantic EventAssignment composite object.
-  @classmethod
-  def fetch_one(cls, query):
-    return cls.aggregate_one([
-      {
-        "$match": query
-      },
-      *cls.build_one_to_one_lookups(),
-      {
-        '$project': {
-          'event.id': '$event._id',
-          'event.name': 1,
-          'player.id': '$player._id',
-          'player.name': 1
-        }
-      },  
-    ]);
-    
+    }  
         
 #####################
 # Integration tests #
@@ -148,6 +126,16 @@ def test_get_field_type():
   print(field_type)
   assert(field_type == 'str')
 
+
+def test_field_class():
+  field_class = EventAssignment.get_field_class('player')
+  assert(field_class == Player)
+ 
+def test_get_field_names_from_field_class():
+  field_class = EventAssignment.get_field_class('player')
+  field_names = field_class.get_field_names()
+  print(field_names)
+  
 def clear_database():
   EventAssignment.delete_all()
   SoccerEvent.delete_all()
@@ -210,3 +198,14 @@ def test_build_one_to_one_lookup():
       }
     }
   ])
+
+def test_build_one_to_one_projection():
+  projection = EventAssignment.build_one_to_one_projection()
+  assert(projection == {
+    '$project': {
+      'event.id': '$event._id',
+      'event.name': 1,
+      'player.id': '$player._id',
+      'player.name': 1
+    }
+  })
