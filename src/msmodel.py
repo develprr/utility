@@ -25,6 +25,10 @@ class MSModel(BaseModel):
   @classmethod
   def get_field_names(cls):
     return list(cls.model_fields.keys())
+  
+  @classmethod
+  def get_data_field_names(cls):
+    return list(filter(lambda field_name: field_name != "id", cls.get_field_names()))
     
   @classmethod
   def get_collection_references(cls):
@@ -37,14 +41,18 @@ class MSModel(BaseModel):
     collection_names = MSMongoClient.singleton.collection_names()
     return True if field_type in collection_names else False
   
-  @classmethod 
-  def get_field_type(cls, field_name):
-    return cls.model_fields[field_name].annotation;
-    
   # Returns the name of the collection in the MongodB that is associated with given field name  
   @classmethod
   def get_field_type(cls, field_name):
     return cls.model_fields[field_name].annotation.__name__
+  
+  @classmethod
+  def get_field_class(cls, field_name):
+    classname = cls.get_field_type(field_name)
+    modulename = classname.lower()
+    module = importlib.import_module(modulename)
+    return getattr(module, classname)
+    
   
   # when storing object to mongodb, expclit ID field must be translated into "_id"
   def substitute_id_with_underscore_id(self, json):
@@ -107,7 +115,29 @@ class MSModel(BaseModel):
   def build_one_to_one_lookups(cls):
     references = cls.get_collection_references()
     return np.array(list(map(cls.build_one_to_one_lookup, references))).flatten().tolist()
+  
+  @classmethod
+  def build_sub_projection_by_reference(cls, reference):
+    sub_projection = {
+      f"{reference}.id": f"${reference}._id"
+    }
+    field_class = cls.get_field_class(reference)
+    data_fields = field_class.get_data_field_names()
+    for data_field in data_fields:
+      sub_projection[f"{reference}.{data_field}"] = 1
+    return sub_projection
     
+  @classmethod
+  def build_one_to_one_projection(cls):
+    references = cls.get_collection_references()
+    sub_projections = list(map(cls.build_sub_projection_by_reference, references))
+    projection = {}
+    for sub_projection in sub_projections:
+      projection = {**projection, **sub_projection}
+    return {
+      '$project': projection
+    }
+      
   @classmethod
   def find_all(cls):
     return cls.find({})
@@ -140,3 +170,17 @@ class MSModel(BaseModel):
   def delete_all(cls):
     collection_name = cls.__name__
     return MSMongoClient.singleton.delete_many(collection_name, {})
+
+  # fetch_one uses a custom MongoDB query to fetch
+  # an object with its properties
+  # in a format that can directly be deserialized
+  # into a Pydantic composite object.
+  @classmethod
+  def fetch_one(cls, query):
+    return cls.aggregate_one([
+      {
+        "$match": query
+      },
+      *cls.build_one_to_one_lookups(),
+      cls.build_one_to_one_projection(),
+    ]);
